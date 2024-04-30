@@ -52,6 +52,7 @@
         <button id="perform-operation">Perform Operation</button>
         <button id="reset">Reset</button>
     </div>
+    <div id="memory-contents"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
@@ -110,27 +111,7 @@
                 const x = memoryX;
                 const y = memoryY + i * (cacheLineHeight + cacheSetGap);
                 ctx.strokeRect(x, y, cacheLineWidth, cacheLineHeight);
-                ctx.fillText(`a${i}`, x, y + cacheLineHeight - 5);
-            }
-
-
-
-
-
-        }
-
-
-
-
-
-
-
-        function updateEventLog(log) {
-            eventLog.innerHTML = '';
-            for (const event of log) {
-                const logEntry = document.createElement('p');
-                logEntry.textContent = event;
-                eventLog.appendChild(logEntry);
+                ctx.fillText(`a${i}: ${cacheState.memory.data[i]}`, x, y + cacheLineHeight - 5);
             }
         }
 
@@ -146,10 +127,11 @@
                     address: parseInt(address)
                 });
 
-                const { cache_hit, cache_state, cache_event_log } = response.data;
+                const { cache_hit, cache_state, cache_event_log, memory_data } = response.data;
                 cacheState = cache_state;
                 drawCacheState();
                 updateEventLog(cache_event_log);
+                displayMemoryContents(memory_data);
 
                 console.log(`Cache hit: ${cache_hit}`);
             } catch (error) {
@@ -163,8 +145,28 @@
                 cacheState = response.data.cache_state;
                 drawCacheState();
                 updateEventLog([]);
+                displayMemoryContents(response.data.memory_data);
             } catch (error) {
                 console.error(error);
+            }
+        }
+
+        function displayMemoryContents(memoryData) {
+            const memoryContentsDiv = document.getElementById('memory-contents');
+            memoryContentsDiv.innerHTML = '';
+            for (let i = 0; i < memoryData.length; i++) {
+                const memoryEntry = document.createElement('p');
+                memoryEntry.textContent = `Memory[${i}]: ${memoryData[i]}`;
+                memoryContentsDiv.appendChild(memoryEntry);
+            }
+        }
+
+        function updateEventLog(log) {
+            eventLog.innerHTML = '';
+            for (const event of log) {
+                const logEntry = document.createElement('p');
+                logEntry.textContent = event;
+                eventLog.appendChild(logEntry);
             }
         }
 
@@ -172,4 +174,4 @@
         resetButton.addEventListener('click', reset);
     </script>
 </body>
-</html> 
+</html>
